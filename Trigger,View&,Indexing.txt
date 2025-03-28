@@ -1,0 +1,40 @@
+Trigger,View&,Indexing
+
+#Query 1.Trigger: Update Stock After Order
+(Automatically updates the stock quantity when a new order is inserted.)
+
+DELIMITER $$
+
+CREATE TRIGGER update_stock_after_order
+AFTER INSERT ON Order_Details
+FOR EACH ROW
+BEGIN
+    UPDATE Products 
+    SET stock_quantity = stock_quantity - NEW.quantity
+    WHERE product_id = NEW.product_id;
+END $$
+
+DELIMITER ;
+
+
+
+#Query 2.View: Monthly Sales Report
+(Creates a view to generate a monthly sales report with total revenue and orders.)
+
+CREATE VIEW MonthlySalesReport AS
+SELECT DATE_FORMAT(o.order_date, '%Y-%m') AS order_month, 
+       SUM(o.total_amount) AS total_revenue, 
+       COUNT(o.order_id) AS total_orders
+FROM Orders o
+GROUP BY order_month;
+
+#Query 3.Querying the View.
+
+SELECT * FROM MonthlySalesReport;
+
+#Query 4.Indexing for Performance Optimization
+(Creates indexes to improve query performance on frequently searched columns.)
+
+CREATE INDEX idx_users_email ON Users(email);
+CREATE INDEX idx_orders_user_id ON Orders(user_id);
+CREATE INDEX idx_products_category ON Products(category);

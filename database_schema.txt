@@ -1,0 +1,114 @@
+database_schema.sql
+
+#QUERY 1.schema structure(creating tables of users, products, orders, order_details, payments).
+
+CREATE DATABASE ECommerceDB;
+USE ECommerceDB;
+
+CREATE TABLE Users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    registered_date DATE
+);
+
+CREATE TABLE Products (
+    product_id INT PRIMARY KEY AUTO_INCREMENT,
+    product_name VARCHAR(255),
+    category VARCHAR(100),
+    price DECIMAL(10,2),
+    stock_quantity INT
+);
+
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    order_date DATETIME,
+    total_amount DECIMAL(10,2),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+CREATE TABLE Order_Details (
+    order_detail_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    subtotal DECIMAL(10,2),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT,
+    payment_method VARCHAR(50),
+    payment_status ENUM('Pending', 'Completed', 'Failed'),
+    payment_date DATETIME,
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+);
+
+
+#QUERY 2. Data Insertion into following tables: users, products, orders, order_details, payments.
+
+INSERT INTO Users (name, email, registered_date) VALUES
+('John Doe', 'john.doe@email.com', '2023-01-15'),
+('Jane Smith', 'jane.smith@email.com', '2023-02-10');
+
+INSERT INTO Products (product_name, category, price, stock_quantity) VALUES
+('Laptop', 'Electronics', 750.00, 50),
+('Headphones', 'Electronics', 50.00, 100),
+('Chair', 'Furniture', 120.00, 20);
+
+INSERT INTO Orders (user_id, order_date, total_amount) VALUES
+(1, '2023-03-01 10:30:00', 800.00),
+(2, '2023-03-02 14:20:00', 50.00);
+
+INSERT INTO Order_Details (order_id, product_id, quantity, subtotal) VALUES
+(1, 1, 1, 750.00),
+(1, 2, 1, 50.00),
+(2, 2, 1, 50.00);
+
+INSERT INTO Payments (order_id, payment_method, payment_status, payment_date) VALUES
+(1, 'Credit Card', 'Completed', '2023-03-01 11:00:00'),
+(2, 'PayPal', 'Completed', '2023-03-02 15:00:00');
+
+
+
+
+#QUERY 3.Fetch total sales revenue.
+
+SELECT SUM(total_amount) AS total_sales FROM Orders;
+
+
+#QUERY 4.Find the top 3 best-selling products
+
+SELECT p.product_name, SUM(od.quantity) AS total_sold
+FROM Order_Details od
+JOIN Products p ON od.product_id = p.product_id
+GROUP BY p.product_id
+ORDER BY total_sold DESC
+LIMIT 3;
+
+#QUERY 5.Get customer purchase history
+
+SELECT u.name, o.order_id, o.order_date, o.total_amount 
+FROM Users u
+JOIN Orders o ON u.user_id = o.user_id
+ORDER BY o.order_date DESC;
+
+
+#QUERY 6.Identify low-stock products
+
+SELECT product_name, stock_quantity
+FROM Products
+WHERE stock_quantity < 10;
+
+
+#QUERY 7.Count total orders placed per month
+
+SELECT DATE_FORMAT(order_date, '%Y-%m') AS order_month, COUNT(order_id) AS total_orders
+FROM Orders
+GROUP BY order_month;
+
+
+
